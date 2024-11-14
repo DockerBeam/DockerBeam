@@ -1,0 +1,13 @@
+[package]
+name = "DockerBeam"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+futures-util = "0.3.31"
+stunclient = "0.4.1"
+tokio = { version = "1.41.0", features = ["full"] }
+tokio-tungstenite = "0.24.0"
+url = "2.5.3"
+webrtc = "0.11.0"
+
