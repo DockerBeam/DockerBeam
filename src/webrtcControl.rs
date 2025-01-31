@@ -123,7 +123,7 @@ pub async fn init_peer_connection() -> Result<Arc<RTCPeerConnection>, Box<dyn Er
 pub async fn create_offer(pc: &Arc<RTCPeerConnection>) -> Result<(String,Arc<RTCDataChannel>), Box<dyn Error>> {
     let config = RTCDataChannelInit {
         ordered: Some(false),
-        max_retransmits: Some(0),
+        //max_retransmits: Some(0), disabled for now ......
         ..Default::default()
     };
     let dc: Arc<RTCDataChannel> = pc.create_data_channel("beamEngine", Some(config)).await?;
