@@ -4,10 +4,31 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+bollard = "0.18.0"
+directories = "5.0.1"
+dirs = "5.0.1"
 futures-util = "0.3.31"
-stunclient = "0.4.1"
-tokio = { version = "1.41.0", features = ["full"] }
-tokio-tungstenite = "0.24.0"
+serde = "1.0.215"
+serde_json = "1.0.133"
+futures= "0.3"
+tokio = { version = "1.42.0", features = ["full", "rt-multi-thread", "macros"] }
+tokio-tungstenite = { version = "0.24.0", features = ["rustls-tls-native-roots"] }
 url = "2.5.3"
-webrtc = "0.11.0"
+libp2p = { version = "0.54.1", features = ["quic", "relay", "identify", "dcutr", "tokio", "macros"] }
+async-std = { version = "1.12.0", features = ["attributes"] }
+base64 = "0.22.1"
+webrtc = "0.12.0"
+dialoguer = {version="0.11.0" ,features = ["fuzzy-select"]}
+console = "0.15.10"
+arboard = "3.4.1"
+indicatif = "0.17.9"
+tokio-util = "0.7.13"
+tempfile = "3.15.0"
+dotenv = "0.15.0"
+tokio-rustls = "0.26.1"
+rustls = { version = "0.23.21", features = ["ring"] }
+rustls-pki-types = "1.10.1"
+env_logger = "0.11.6"
+log = "0.4.22"
+rust-embed = {version = "8.5.0",features = ["interpolate-folder-path","include-exclude"]}
 
