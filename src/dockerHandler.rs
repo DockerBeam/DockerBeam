@@ -10,6 +10,7 @@ use bollard::image::ImportImageOptions;
 use bollard::errors::Error;
 use log::{debug, error, info, warn};
 use console::style;
+use tokio_util::codec;
 use crate::io;
 
 
@@ -54,14 +55,17 @@ pub fn check_avail(){
 
 pub async fn load_image_from_tar(tar_path: &str) -> Result<(), Error> {
     let docker = Docker::connect_with_defaults().expect("ERR : ");
-    let file_content = tokio::fs::read(tar_path).await?;
+    let mut file_content = File::open(tar_path).await.unwrap();
+    let mut byte_stream = codec::FramedRead::new(file_content, codec::BytesCodec::new()).map(|r| {
+        r.unwrap().freeze()
+    });
 
     let mut stream = docker
-        .import_image(
+        .import_image_stream(
             ImportImageOptions {
                 ..Default::default()
             },
-            Bytes::from(file_content),
+            byte_stream,
             None,
         );
 

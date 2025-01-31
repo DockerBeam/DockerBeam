@@ -163,6 +163,7 @@ pub async fn send_docker_image(docker_name: String)-> Result<(),Box<dyn Error>> 
                 let received_message = String::from_utf8(msg.data.to_vec()).unwrap();
                 info!("recieved - {}",received_message);
                 if received_message.starts_with("END_OF_TRANSFER"){
+                    println!("Image Loaded {}",style("Successfully").green());
                     let _x = pc_c.close().await;
                     io::match_error(Ok(_x));
                 }

@@ -255,7 +255,7 @@ dc.on_message(Box::new({move |msg| {
             }
 
             if text == "END_OF_TRANSFER" {
-                println!("Transfer completed. Processing image...");
+
                 
                 let locked_chunks = chunks.lock().await;
                 let expected = expected_size.lock().await;
@@ -274,7 +274,7 @@ dc.on_message(Box::new({move |msg| {
                                 expected_size, all_data.len());
                     }
                 }
-
+                println!("Transfer completed. Processing image...");
                 let tar_path = io::get_config_path().unwrap();
                 let tar_path = tar_path.join("beamfiles/recv.tar");
                 info!("tar path -  {}",tar_path.display());
