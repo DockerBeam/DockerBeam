@@ -10,7 +10,7 @@ use webrtc::ice_transport::ice_candidate::RTCIceCandidateInit;
 use webrtc::data_channel::RTCDataChannel;
 use webrtc::peer_connection::peer_connection_state::RTCPeerConnectionState;
 use webrtc::ice_transport::ice_gathering_state::RTCIceGatheringState;
-use tokio::time::{sleep, Duration};
+use tokio::time::{sleep, Duration,Instant};
 use webrtc::ice_transport::ice_candidate::RTCIceCandidate;
 use tokio::sync::mpsc;
 use crate::{cli, dockerHandler, io};
@@ -23,6 +23,7 @@ use indicatif::ProgressBar;
 use webrtc::api::setting_engine::SettingEngine;
 use log::{error, info};
 use webrtc::data_channel::data_channel_init::RTCDataChannelInit;
+use std::sync::atomic::{AtomicU64, Ordering};
 
 
 pub type WriteStream = futures_util::stream::SplitSink<WebSocketStream<tokio_tungstenite::MaybeTlsStream<tokio::net::TcpStream>>, tokio_tungstenite::tungstenite::Message>;
@@ -110,7 +111,7 @@ pub async fn init_peer_connection() -> Result<Arc<RTCPeerConnection>, Box<dyn Er
             RTCPeerConnectionState::Connected => println!("Connected to peer"),
             RTCPeerConnectionState::Disconnected => {println!("State: Disconnected");error!("Peer Disconnected.");std::process::exit(1)},
             RTCPeerConnectionState::Failed => {println!("State: Failed - Timeout or peer disconnected.");error!("Peer Disconected or Timed-out")},
-            RTCPeerConnectionState::Closed => {println!("State: Closed(end of transfer)");io::clear_files();std::process::exit(0)},
+            RTCPeerConnectionState::Closed => {io::clear_files();std::process::exit(0)},
             _=>panic!(" ")
         }
         Box::pin(async {})
@@ -122,6 +123,7 @@ pub async fn init_peer_connection() -> Result<Arc<RTCPeerConnection>, Box<dyn Er
 pub async fn create_offer(pc: &Arc<RTCPeerConnection>) -> Result<(String,Arc<RTCDataChannel>), Box<dyn Error>> {
     let config = RTCDataChannelInit {
         ordered: Some(false),
+        max_retransmits: Some(0),
         ..Default::default()
     };
     let dc: Arc<RTCDataChannel> = pc.create_data_channel("beamEngine", Some(config)).await?;
@@ -218,111 +220,105 @@ async fn setup_data_channel(pc:&Arc<RTCPeerConnection>,dc: &Arc<RTCDataChannel>)
     let pb = Arc::new(Mutex::new(None::<ProgressBar>));
     let dc_clone = Arc::clone(&dc);
     let pc = Arc::clone(&pc);
+    let expected_size = Arc::new(Mutex::new(None::<usize>));
+    let mut last_update = Instant::now();
+    let update_interval = Duration::from_millis(100); 
+    let current_size = Arc::new(AtomicU64::new(0));
 
-    dc.on_message(Box::new({
-        let chunks = Arc::clone(&chunks);
-        let expected_size = Arc::new(Mutex::new(None::<usize>));
-        let docker_name = Arc::clone(&docker_name);
-        let pb = Arc::clone(&pb);
-        let dc_clone = Arc::clone(&dc_clone);
+dc.on_message(Box::new({move |msg| {
+    let chunks = Arc::clone(&chunks);
+    let expected_size = Arc::clone(&expected_size);
+    let docker_name = Arc::clone(&docker_name);
+    let pb = Arc::clone(&pb);
+    let dc_clone = Arc::clone(&dc_clone);
     let pc = Arc::clone(&pc);
+    let current_size = Arc::clone(&current_size);
 
-        
-        
-        move |msg| {
-            let chunks = Arc::clone(&chunks);
-            let expected_size = Arc::clone(&expected_size);
-            let docker_name = Arc::clone(&docker_name);
-            let pb = Arc::clone(&pb);
-            let dc_clone = Arc::clone(&dc_clone);
-            let pc = Arc::clone(&pc);
+    
+    Box::pin(async move {
+        if msg.is_string {
+            let text = String::from_utf8(msg.data.to_vec()).unwrap();
 
-
-            
-            Box::pin(async move {
-                if msg.is_string {
-                    let text = String::from_utf8(msg.data.to_vec()).unwrap();
-
-                    if text.starts_with("FILE_NAME:") {
-                        if let Some(size) = text.split(':').nth(1){
-                            *docker_name.lock().await = Some(size.to_owned());
-                        }
-                        return;
-                    }
-                    
-                    if text.starts_with("FILE_SIZE:") {
-                        if let Ok(size) = text.split(':').nth(1).unwrap_or("0").parse::<usize>() {
-                            *expected_size.lock().await = Some(size);
-                            *pb.lock().await = Some(cli::download_status_mod(size as u64));
-                        }
-                        return;
-                    }
-
-                    if text == "END_OF_TRANSFER" {
-                        println!("Transfer completed. Processing image...");
-                        
-                        let locked_chunks = chunks.lock().await;
-                        let expected = expected_size.lock().await;
-                        
-
-                        let total_size: usize = locked_chunks.iter().map(|chunk| chunk.len()).sum();
-                        let mut all_data = Vec::with_capacity(total_size);
-                        
-                        for chunk in locked_chunks.iter() {
-                            all_data.extend_from_slice(chunk);
-                        }
-                        
-                        if let Some(expected_size) = *expected {
-                            if all_data.len() != expected_size {
-                                error!("Size mismatch! Expected: {}, Got: {}", 
-                                        expected_size, all_data.len());
-                            }
-                        }
-
-                        let tar_path = io::get_config_path().unwrap();
-                        let tar_path = tar_path.join("beamfiles/recv.tar");
-                        info!("tar p {}",tar_path.display());
-                        let mut file = File::create(&tar_path).await.expect("Error creating file");
-                        file.write_all(&all_data).await.expect("ERR writing docker tar file");
-                        file.flush().await.expect("ERR flushing file");
-
-                        let _x = dockerHandler::load_image_from_tar(tar_path.to_owned().to_str().unwrap()).await;
-                        io::match_error(Ok(_x));
-                        match dc_clone.send_text("END_OF_TRANSFER | ").await{
-                            Ok(_)=>{tokio::time::sleep(Duration::from_millis(500)).await;}
-                            _=>{}
-                        };
-                        pc.close().await.expect("unable to close session : ");
-                        
-
-                        
-                        
-                        return;
-                    }
-                } else {
-                    let data = msg.data.to_vec();
-                    let mut locked_chunks = chunks.lock().await;
-                    let pb_guard = pb.lock().await;
-                    let current_size: usize = locked_chunks.iter().map(|chunk| chunk.len()).sum();
-                    locked_chunks.push(data.clone());
-
-                    let pbg_2 = pb_guard.clone();
-
-                    tokio::spawn(async move{
-                        if let Some(total_size) = *expected_size.lock().await {
-                            if let Some(pb) = pbg_2.as_ref() {
-                                let position = (current_size + data.len()) as u64;
-                                pb.set_position(position.min(total_size as u64));
-                                std::thread::sleep(Duration::from_millis(12));
-                                if position >= total_size as u64 {
-                                    pb.finish_with_message("Download complete!");
-                                }
-                            }
-                        }
-                    });
+            if text.starts_with("FILE_NAME:") {
+                if let Some(size) = text.split(':').nth(1){
+                    *docker_name.lock().await = Some(size.to_owned());
                 }
-            })
+                return;
+            }
+            
+            if text.starts_with("FILE_SIZE:") {
+                if let Ok(size) = text.split(':').nth(1).unwrap_or("0").parse::<usize>() {
+                    *expected_size.lock().await = Some(size);
+                    *pb.lock().await = Some(cli::download_status_mod(size as u64));
+                }
+                return;
+            }
+
+            if text == "END_OF_TRANSFER" {
+                println!("Transfer completed. Processing image...");
+                
+                let locked_chunks = chunks.lock().await;
+                let expected = expected_size.lock().await;
+                
+
+                let total_size: usize = locked_chunks.iter().map(|chunk| chunk.len()).sum();
+                let mut all_data = Vec::with_capacity(total_size);
+                
+                for chunk in locked_chunks.iter() {
+                    all_data.extend_from_slice(chunk);
+                }
+                
+                if let Some(expected_size) = *expected {
+                    if all_data.len() != expected_size {
+                        error!("Size mismatch! Expected: {}, Got: {}", 
+                                expected_size, all_data.len());
+                    }
+                }
+
+                let tar_path = io::get_config_path().unwrap();
+                let tar_path = tar_path.join("beamfiles/recv.tar");
+                info!("tar path -  {}",tar_path.display());
+                let mut file = File::create(&tar_path).await.expect("Error creating file");
+                file.write_all(&all_data).await.expect("ERR writing docker tar file");
+                file.flush().await.expect("ERR flushing file");
+
+                let _x = dockerHandler::load_image_from_tar(tar_path.to_owned().to_str().unwrap()).await;
+                io::match_error(Ok(_x));
+                match dc_clone.send_text("END_OF_TRANSFER | ").await{
+                    Ok(_)=>{tokio::time::sleep(Duration::from_millis(500)).await;}
+                    _=>{}
+                };
+                pc.close().await.expect("unable to close session : ");
+                
+
+                
+                
+                return;
+            }
+        } else {
+            let data = msg.data.to_vec();
+            let mut locked_chunks = chunks.lock().await;
+            let pb_guard = pb.lock().await;
+            current_size.fetch_add(data.len() as u64, Ordering::Relaxed);
+            locked_chunks.push(data.clone());
+
+            let pbg_2 = pb_guard.clone();
+
+            if last_update.elapsed() >= update_interval {
+                let total_size = expected_size.lock().await.unwrap();
+                tokio::task::spawn_blocking(move || {
+                    let pb = pbg_2.as_ref().unwrap();
+                    let size = current_size.load(Ordering::Relaxed);
+                    pb.set_position(size);
+                    if size == total_size as u64 {
+                        pb.finish_with_message("Download complete!");
+                    }
+                });
+
+            }
         }
+    })
+}
 }));
 
 }

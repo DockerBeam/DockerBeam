@@ -25,6 +25,7 @@ pub struct SignalMsg {
     pub id: String,
 }
 
+
 pub type WriteStream = futures_util::stream::SplitSink<tokio_tungstenite::WebSocketStream<tokio::net::TcpStream>, tokio_tungstenite::tungstenite::Message>;
 pub type ReadStream = futures_util::stream::SplitStream<tokio_tungstenite::WebSocketStream<tokio::net::TcpStream>>;
 
@@ -149,6 +150,7 @@ pub async fn send_docker_image(docker_name: String)-> Result<(),Box<dyn Error>> 
                     error!("Failed to send end signal: {:?}", e);
                     return;
                 }
+                println!("Image sent {}",style("successfully").green());
         
             })
         }));

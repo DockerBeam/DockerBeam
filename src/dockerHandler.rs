@@ -1,5 +1,6 @@
 use bollard::Docker;
 use futures_util::StreamExt;
+use indicatif::style;
 use libp2p::bytes::Bytes;
 use tokio::fs::File;
 use tokio::io::AsyncWriteExt;
@@ -8,6 +9,7 @@ use bollard::models::ImageSummary;
 use bollard::image::ImportImageOptions;
 use bollard::errors::Error;
 use log::{debug, error, info, warn};
+use console::style;
 use crate::io;
 
 
@@ -65,7 +67,7 @@ pub async fn load_image_from_tar(tar_path: &str) -> Result<(), Error> {
 
     while let Some(response) = stream.next().await {
         match response {
-            Ok(output) => println!("Image imported with ID: {output:?}"),
+            Ok(output) => println!("Image Imported {}",style("Successfully").green()),
             Err(e) => eprintln!("Error importing image: {:?}", e),
         }
     }
