@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use bollard::Docker;
 use futures_util::StreamExt;
 use indicatif::style;
@@ -54,7 +56,8 @@ pub fn check_avail(){
 
 
 pub async fn load_image_from_tar(tar_path: &str) -> Result<(), Error> {
-    let docker = Docker::connect_with_defaults().expect("ERR : ");
+    let mut docker = Docker::connect_with_defaults().expect("ERR : ");
+    docker.set_timeout(Duration::from_secs(1800));
     let mut file_content = File::open(tar_path).await.unwrap();
     let mut byte_stream = codec::FramedRead::new(file_content, codec::BytesCodec::new()).map(|r| {
         r.unwrap().freeze()
