@@ -105,7 +105,7 @@ pub async fn receive_message(read: &mut ReadStream) -> Result<SignalMsg, Box<dyn
                 Err(e) => {debug!("ERR 30 ");std::process::exit(1)},
             }
         },
-        Some(Err(e)) => {debug!("ERR 31 ");std::process::exit(1)},
+        Some(Err(e)) => {debug!("ERR 31 - {e}");std::process::exit(1)},
         None => {error!("Unexpected end of websocket stream");std::process::exit(1);}
     }
 }

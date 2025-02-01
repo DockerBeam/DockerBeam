@@ -49,7 +49,7 @@ pub fn load_or_create_config() {
 
 pub fn match_error<T> (r:Result<T,Box<dyn Error>>){
     match r{
-        Err(e)=>error!("Err : {e}"),
+        Err(e)=>{error!("Err : {e}");std::process::exit(1)},
         _=>{}
     }
 }

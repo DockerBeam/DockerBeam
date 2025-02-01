@@ -57,12 +57,13 @@ pub fn check_avail(){
 
 pub async fn load_image_from_tar(tar_path: &str) -> Result<(), Error> {
     let mut docker = Docker::connect_with_defaults().expect("ERR : ");
+    info!("Docker Connected");
     docker.set_timeout(Duration::from_secs(1800));
     let mut file_content = File::open(tar_path).await.unwrap();
     let mut byte_stream = codec::FramedRead::new(file_content, codec::BytesCodec::new()).map(|r| {
         r.unwrap().freeze()
     });
-
+    info!("Starting image Load sequence");
     let mut stream = docker
         .import_image_stream(
             ImportImageOptions {
@@ -71,10 +72,10 @@ pub async fn load_image_from_tar(tar_path: &str) -> Result<(), Error> {
             byte_stream,
             None,
         );
-
+        
     while let Some(response) = stream.next().await {
         match response {
-            Ok(output) => println!("Image Imported {}",style("Successfully").green()),
+            Ok(output) => {println!("Image Imported {}",style("Successfully").green());info!("{output:?}")},
             Err(e) => eprintln!("Error importing image: {:?}", e),
         }
     }
