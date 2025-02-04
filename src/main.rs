@@ -97,7 +97,10 @@ ______           _            ______
         }
         _ => {
             eprintln!("Unknown command: {}", args[1]);
-            eprintln!("Available commands: send, get");
+            eprintln!(r"Available commands:  
+            send <image> / push <image>                         Push Docker image to another peer
+            get @<peer> / recieve @<peer> / pull @<peer>        Pull Docker image from a peer
+            ");
         }
     }
 }
