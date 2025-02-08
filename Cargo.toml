@@ -1,6 +1,10 @@
 [package]
 name = "DockerBeam"
 version = "1.0.0"
+license = "MIT"
+description = "A P2P Docker image sharing tool"
+homepage = "https://www.dockerbeam.com"
+repository = "https://github.com/DockerBeam/DockerBeam"
 edition = "2021"
 
 [dependencies]
@@ -32,3 +36,6 @@ env_logger = "0.11.6"
 log = "0.4.22"
 rust-embed = {version = "8.5.0",features = ["interpolate-folder-path","include-exclude"]}
 
+[package.metadata.deb]
+maintainer = "cryptodarth <aditya.cryptd@gmail.com>"
+copyright = "2025, cryptodarth <aditya.cryptd@gmail.com>"
