@@ -1,7 +1,12 @@
-![enter image description here](https://i.ibb.co/spgXq26h/Frame-2.png)
+
+
+![Frame 2](https://github.com/user-attachments/assets/e47afb1d-edab-4ab5-a705-13bd0d6716c7)
 ---
 >**DockerBeam** is a P2P app that transfers Docker images directly between users.
 
+
+
+![gh](https://github.com/user-attachments/assets/5a34d156-06a7-487f-b674-54903a9de44f)
 # Usage
 ```dockerbeam [COMMAND] [ARGS] [OPTIONS]```
 
@@ -23,35 +28,36 @@
 
 #### examples :
 ```rust
-dockerbeam push rust:latest 		#Send a specific image
+dockerbeam push rust:latest 				#Send a specific image
 
 dockerbeam send 					#Select image interactively
 
-dockerbeam pull @MTI3LjAuMC4x 		#Pull from peer MTI3LjAuMC4x
+dockerbeam pull @MTI3LjAuMC4x 				#Pull from peer MTI3LjAuMC4x
 
 dockerbeam get 						#Pull from peer
 ```
 # Installation
 
  - MacOS
-  ```brew install ?```
+  ```brew tap dockerbeam/dockerbeam && brew install dockerbeam```
   
   - Windows
-  ```winget install ?```
+  ```winget install dockerbeam```
 
 - Linux 
-	- AUR
-	```pacman```
-	- RPM
-	 ```?```
-	 - another one here
-	 ```?```
-
-
+(coming very soon)
 ---
 
 > [!WARNING]
 > Known Issues : 
 > [https://github.com/DockerBeam/DockerBeam/issues/1]
 
+  ---
+  For any issues , improvements , requests - Feel free to open up an [issue](https://github.com/DockerBeam/DockerBeam/issues)
   
+Documentation regarding contributions , self host etc will be updated soon...
+
+
+
+
+Thank you for reading till here.
