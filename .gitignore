@@ -25,3 +25,21 @@ server.dockerbeam
 # Added by goreleaser init:
 dist/
 .intentionally-empty-file.o
+
+# Snapcraft build directories
+/*/parts/
+/*/stage/
+/*/prime/
+
+/parts/
+/stage/
+/prime/
+
+# Snap packages
+/*.snap
+
+# Snapcraft state tracking data
+/snap/.snapcraft/
+
+# Source archives created by 'snapcraft cleanbuild'
+/*_source.tar.bz2

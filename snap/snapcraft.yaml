@@ -11,10 +11,10 @@ confinement: devmode
 
 parts:
   dockerbeam:
-    plugin: rust
-    source: .
-    override-pull: |
-      rustup default stable
+    plugin: dump
+    source: ./target/release
+    organize:
+      dockerbeam: bin/dockerbeam
 
 apps:
   dockerbeam:
