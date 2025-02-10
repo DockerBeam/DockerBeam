@@ -7,7 +7,7 @@ description: |
   reducing reliance on centralized repositories.
 
 base: core22
-confinement: classic
+confinement: devmode
 
 parts:
   dockerbeam:
