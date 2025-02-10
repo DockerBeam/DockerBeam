@@ -1,0 +1,21 @@
+name: dockerbeam
+version: '0.1.0'
+summary: A P2P Docker image sharing tool
+description: |
+  DockerBeam is a peer-to-peer tool designed for efficient sharing of Docker images.
+  It streamlines the distribution process by enabling direct transfers between peers,
+  reducing reliance on centralized repositories.
+
+base: core22
+confinement: classic
+
+parts:
+  dockerbeam:
+    plugin: rust
+    source: .
+    override-pull: |
+      rustup default stable
+
+apps:
+  dockerbeam:
+    command: bin/dockerbeam
