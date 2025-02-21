@@ -2,11 +2,13 @@
 
 ![Frame 2](https://github.com/user-attachments/assets/e47afb1d-edab-4ab5-a705-13bd0d6716c7)
 ---
+[![dockerbeam](https://snapcraft.io/dockerbeam/badge.svg)](https://snapcraft.io/dockerbeam)
 >**DockerBeam** is a P2P app that transfers Docker images directly between users.
 
 
 
-![gh](https://github.com/user-attachments/assets/5a34d156-06a7-487f-b674-54903a9de44f)
+![gh](https://github.com/user-attachments/assets/5a34d156-06a7-487f-b674-54903a9de44f)  
+[![Get it from the Snap Store](https://snapcraft.io/en/dark/install.svg)](https://snapcraft.io/dockerbeam)
 # Usage
 ```dockerbeam [COMMAND] [ARGS] [OPTIONS]```
 
