@@ -47,7 +47,7 @@ dockerbeam get 						#Pull from peer
   ```winget install dockerbeam```
 
 - Linux 
-(coming very soon)
+```curl --proto '=https' --tlsv1.2 -sSLf https://www.dockerbeam.com/linux | bash```
 ---
 
 > [!WARNING]
