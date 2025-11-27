@@ -39,3 +39,12 @@ rust-embed = {version = "8.5.0",features = ["interpolate-folder-path","include-e
 [package.metadata.deb]
 maintainer = "cryptodarth <aditya.cryptd@gmail.com>"
 copyright = "2025, cryptodarth <aditya.cryptd@gmail.com>"
+
+[profile.release]
+opt-level = "z"
+debug = false
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
+incremental = false
